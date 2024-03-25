@@ -1,11 +1,14 @@
+require("dotenv").config();
 const express = require("express");
+
 const mongoose = require("mongoose");
 const app = express();
 const authRouter = require("./routes/auth");
-const PORT = 3000;
+
+const PORT = process.env.PORT || 3000;
 
 mongoose
-  .connect("mongodb://localhost:27017/amezone")
+  .connect(process.env.MONGO_URL)
   .then(() => {
     console.log("mongoDB connected");
   })
