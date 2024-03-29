@@ -8,14 +8,7 @@ const auth = require("../middlewares/auth");
 const authRouter = express.Router();
 
 // Multer configuration for handling image uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads"); // Define the destination folder where uploaded files will be stored
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname); // Keep the original file name
-  },
-});
+const storage = multer.memoryStorage(); // Store the uploaded file in memory
 const upload = multer({ storage: storage });
 
 authRouter.post(
@@ -24,7 +17,7 @@ authRouter.post(
   async (req, res) => {
     try {
       const { name, email, password } = req.body;
-      const { path } = req.file;
+      const profileImage = req.file.buffer; // Get the image buffer from multer
 
       const existingUser = await User.findOne({ email });
       if (existingUser) {
@@ -38,16 +31,15 @@ authRouter.post(
         email,
         password: hashPassword,
         name,
-        profileImage: path,
+        profileImage, // Save the image buffer directly to the database
       });
       user = await user.save();
-      return res.json({ sucess: user });
+      return res.json({ success: user });
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }
   }
 );
-
 //Sign-In routes
 authRouter.post("/api/signin", async (req, res) => {
   try {
