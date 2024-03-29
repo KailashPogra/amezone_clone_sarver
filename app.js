@@ -6,7 +6,7 @@ const app = express();
 const authRouter = require("./routes/auth");
 const statusRouter = require("./routes/status");
 //process.env.PORT ||
-const PORT =  3000;
+const PORT = process.env.PORT || 3000;
 
 mongoose
   .connect(process.env.MONGO_URL)
