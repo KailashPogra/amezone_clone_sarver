@@ -4,8 +4,9 @@ const express = require("express");
 const mongoose = require("mongoose");
 const app = express();
 const authRouter = require("./routes/auth");
-
-const PORT = process.env.PORT || 3000;
+const statusRouter = require("./routes/status");
+//process.env.PORT ||
+const PORT =  3000;
 
 mongoose
   .connect(process.env.MONGO_URL)
@@ -17,6 +18,7 @@ mongoose
   });
 app.use(express.json());
 app.use(authRouter);
+app.use(statusRouter);
 app.listen(PORT, () => {
   console.log(`connect at ${PORT}`);
 });
