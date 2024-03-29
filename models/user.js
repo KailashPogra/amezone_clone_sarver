@@ -38,6 +38,11 @@ const uSerSchema = mongoose.Schema({
     type: String,
     default: "user",
   },
+  profileImage: {
+    required: true,
+    type: String,
+    default: "",
+  },
 });
 const User = mongoose.model("User", uSerSchema);
 

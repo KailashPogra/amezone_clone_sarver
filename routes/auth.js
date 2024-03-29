@@ -2,33 +2,51 @@ const express = require("express");
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const multer = require("multer");
 const auth = require("../middlewares/auth");
 
 const authRouter = express.Router();
 
-authRouter.post("/api/signup", async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res
-        .status(400)
-        .json({ msg: "user with same email already exists!" });
-    }
-
-    const hashPassword = await bcrypt.hash(password, 10);
-    let user = new User({
-      email,
-      password: hashPassword,
-      name,
-    });
-    user = await user.save();
-    return res.json({ sucess: user });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
+// Multer configuration for handling image uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // Define the destination folder where uploaded files will be stored
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname); // Keep the original file name
+  },
 });
+const upload = multer({ storage: storage });
+
+authRouter.post(
+  "/api/signup",
+  upload.single("profileImage"),
+  async (req, res) => {
+    try {
+      const { name, email, password } = req.body;
+      const { path } = req.file;
+
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res
+          .status(400)
+          .json({ msg: "user with same email already exists!" });
+      }
+
+      const hashPassword = await bcrypt.hash(password, 10);
+      let user = new User({
+        email,
+        password: hashPassword,
+        name,
+        profileImage: path,
+      });
+      user = await user.save();
+      return res.json({ sucess: user });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+);
 
 //Sign-In routes
 authRouter.post("/api/signin", async (req, res) => {
