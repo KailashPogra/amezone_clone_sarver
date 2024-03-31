@@ -58,7 +58,7 @@ authRouter.post(
   async (req, res) => {
     try {
       const { name, email, password } = req.body;
-      const profileImage = req.file.buffer; // Get the image buffer from multer
+      const { filename } = req.file; // Get the filename of the uploaded image
 
       const existingUser = await User.findOne({ email });
       if (existingUser) {
@@ -72,7 +72,7 @@ authRouter.post(
         email,
         password: hashPassword,
         name,
-        profileImage, // Save the image buffer directly to the database
+        profileImage: `/uploads/${__filename}`, // Store the image URL in the database
       });
       user = await user.save();
       return res.json({ success: user });
