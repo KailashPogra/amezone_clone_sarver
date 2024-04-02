@@ -4,6 +4,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const app = express();
 const authRouter = require("./routes/auth");
+const updateRouter = require("./routes/update_user");
 const statusRouter = require("./routes/status");
 const path = require("path");
 // Serve uploaded profile images statically
@@ -22,6 +23,7 @@ mongoose
   });
 app.use(express.json());
 app.use(authRouter);
+app.use(updateRouter);
 app.use(statusRouter);
 app.listen(PORT, () => {
   console.log(`connect at ${PORT}`);
