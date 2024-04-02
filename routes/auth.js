@@ -40,8 +40,9 @@ authRouter.post(
         name,
         profileImage: path,
       });
+      const token = jwt.sign({ id: user._id }, "passwordKey");
       user = await user.save();
-      return res.json({ sucess: user });
+      res.json({ ...user._doc, token: token });
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }
