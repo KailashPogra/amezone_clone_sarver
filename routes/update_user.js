@@ -44,9 +44,12 @@ updateRouter.put(
         return res.status(404).json({ msg: "User not found" });
       }
       // Delete previous profile image if it exists
-      if (user.profileImage) {
-        fs.unlinkSync(user.profileImage); // Delete the file from the file system
+      if (profileImage != null) {
+        fs.unlinkSync(user.profileImage);
       }
+      // if (user.profileImage) {
+      //   fs.unlinkSync(user.profileImage); // Delete the file from the file system
+      // }
 
       // Update user data
       user.name = name || user.name;
