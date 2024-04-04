@@ -11,7 +11,8 @@ const storage = multer.diskStorage({
     cb(null, "uploads"); // Define the destination folder where uploaded files will be stored
   },
   filename: function (req, file, cb) {
-    cb(null, file.originalname); // Keep the original file name
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + "-" + file.originalname); // Append a unique suff
   },
 });
 const upload = multer({ storage: storage });
@@ -47,9 +48,6 @@ updateRouter.put(
       if (profileImage != null) {
         fs.unlinkSync(user.profileImage);
       }
-      // if (user.profileImage) {
-      //   fs.unlinkSync(user.profileImage); // Delete the file from the file system
-      // }
 
       // Update user data
       user.name = name || user.name;
