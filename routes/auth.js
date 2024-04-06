@@ -49,40 +49,6 @@ authRouter.post(
   }
 );
 
-// //Multer configuration for handling image uploads
-// const storage = multer.memoryStorage(); // Store the uploaded file in memory
-// const upload = multer({ storage: storage });
-
-// authRouter.post(
-//   "/api/signup",
-//   upload.single("profileImage"),
-//   async (req, res) => {
-//     try {
-//       const { name, email, password } = req.body;
-//       const profileImage = req.file.buffer; // Get the filename of the uploaded image
-
-//       const existingUser = await User.findOne({ email });
-//       if (existingUser) {
-//         return res
-//           .status(400)
-//           .json({ msg: "user with same email already exists!" });
-//       }
-
-//       const hashPassword = await bcrypt.hash(password, 10);
-//       let user = new User({
-//         email,
-//         password: hashPassword,
-//         name,
-//         profileImage, // Store the image URL in the database
-//       });
-//       user = await user.save();
-//       return res.json({ success: user });
-//     } catch (error) {
-//       return res.status(500).json({ error: error.message });
-//     }
-//   }
-// );
-
 //Sign-In routes
 authRouter.post("/api/signin", async (req, res) => {
   try {

@@ -11,6 +11,14 @@ const statusSchema = mongoose.Schema({
     type: Boolean,
     required: true,
   },
+  latitude: {
+    type: Number, // Define latitude as a Number type
+    required: true,
+  },
+  longitude: {
+    type: Number, // Define longitude as a Number type
+    required: true,
+  },
   updatedAt: {
     type: Date,
     default: Date.now,

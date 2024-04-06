@@ -1,32 +1,29 @@
-// authRouter.js (API Endpoint)
 const express = require("express");
 const jwt = require("jsonwebtoken");
-const User = require("../models/user"); // Assuming you have a User model
+const User = require("../models/user");
 const Status = require("../models/status");
 
 const statusRouter = express.Router();
 
+// POST API endpoint to update user's online status and location
 statusRouter.post("/api/status", async (req, res) => {
   try {
+    const { isOnline, latitude, longitude } = req.body;
     const token = req.header("x-auth-token");
     if (!token) {
-      return res.json(false);
+      return res.status(401).json({ msg: "No auth token , access denied" });
     }
-    const { isOnline } = req.body; // Assuming token and status are sent in the request body
-
-    // Verify JWT token
     const verified = jwt.verify(token, "passwordKey");
 
-    // Find the user
-    const user = await User.findById(verified.id);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
+    if (!verified) {
+      return res
+        .status(401)
+        .json({ msg: "token verification failed , access denied" });
     }
 
-    // Update user status
     const statusUpdate = await Status.findOneAndUpdate(
-      { _id: "65fc33d15ecd26abd04411a8" },
-      { isOnline: isOnline },
+      { _id: verified.id },
+      { isOnline: isOnline, latitude: latitude, longitude: longitude },
       { new: true, upsert: true }
     );
 
@@ -36,24 +33,44 @@ statusRouter.post("/api/status", async (req, res) => {
   }
 });
 
-// GET API endpoint to get the status of a user
-statusRouter.get("/api/status", async (req, res) => {
+// GET API endpoint to get nearby users based on latitude and longitude
+statusRouter.get("/api/nearbyusers", async (req, res) => {
   try {
+    const { latitude, longitude } = req.query;
     const token = req.header("x-auth-token");
     if (!token) {
-      return res.json({ msg: "authorization failed" });
+      return res.status(401).json({ msg: "No auth token , access denied" });
     }
     const verified = jwt.verify(token, "passwordKey");
-    const userId = await User.findById(verified.id);
 
-    // Find the status of the user
-    const userStatus = await Status.findOne({ userId });
+    if (!verified) {
+      return res
+        .status(401)
+        .json({ msg: "token verification failed , access denied" });
+    }
 
-    // If user status is found, return it
-    if (userStatus) {
-      res.json({ success: true, isOnline: userStatus.isOnline });
+    // Parse latitude and longitude as numbers
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+
+    // Find nearby users who are online and limit the result to 10 users
+    const nearbyUsers = await Status.find({
+      isOnline: true,
+      latitude: { $gt: lat - 10, $lt: lat + 10 },
+      longitude: { $gt: lng - 10, $lt: lng + 10 },
+      _id: { $ne: verified.id }, // Exclude the current user's ID
+    })
+      .populate("_id")
+      .limit(10);
+
+    if (nearbyUsers.length > 0) {
+      const nearbyUserData = nearbyUsers.map((user) => ({
+        // location: { latitude: user.latitude, longitude: user.longitude },
+        userData: user._id,
+      }));
+      res.json({ success: true, nearbyUsers: nearbyUserData });
     } else {
-      res.status(404).json({ error: "User status not found" });
+      res.status(404).json({ error: "No nearby users found" });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
