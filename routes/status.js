@@ -8,22 +8,27 @@ const statusRouter = express.Router();
 // POST API endpoint to update user's online status and location
 statusRouter.post("/api/status", async (req, res) => {
   try {
-    const { isOnline, latitude, longitude } = req.body;
+    const { isOnline } = req.body;
     const token = req.header("x-auth-token");
+
     if (!token) {
-      return res.status(401).json({ msg: "No auth token , access denied" });
+      return res.status(401).json({ msg: "No auth token, access denied" });
     }
+
     const verified = jwt.verify(token, "passwordKey");
 
     if (!verified) {
       return res
         .status(401)
-        .json({ msg: "token verification failed , access denied" });
+        .json({ msg: "Token verification failed, access denied" });
     }
 
+    // Create a GeoJSON object for the location
+
+    // Update the user's online status and location
     const statusUpdate = await Status.findOneAndUpdate(
       { _id: verified.id },
-      { isOnline: isOnline, latitude: latitude, longitude: longitude },
+      { isOnline: isOnline },
       { new: true, upsert: true }
     );
 
@@ -33,7 +38,7 @@ statusRouter.post("/api/status", async (req, res) => {
   }
 });
 
-// GET API endpoint to get nearby users based on latitude and longitude
+////////////////////////////////////////////////////////////////
 statusRouter.get("/api/nearbyusers", async (req, res) => {
   try {
     const { latitude, longitude } = req.query;
@@ -49,15 +54,29 @@ statusRouter.get("/api/nearbyusers", async (req, res) => {
         .json({ msg: "token verification failed , access denied" });
     }
 
-    // Parse latitude and longitude as numbers
+    // Check if latitude and longitude are provided
+    if (!latitude || !longitude) {
+      return res
+        .status(400)
+        .json({ error: "Latitude and longitude are required" });
+    }
+
+    // Parse latitude and longitude as floats
     const lat = parseFloat(latitude);
     const lng = parseFloat(longitude);
 
-    // Find nearby users who are online and limit the result to 10 users
+    // Find nearby users within a certain distance (e.g., 10 kilometers)
     const nearbyUsers = await Status.find({
       isOnline: true,
-      latitude: { $gt: lat - 10, $lt: lat + 10 },
-      longitude: { $gt: lng - 10, $lt: lng + 10 },
+      location: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [lng, lat], // Longitude, Latitude
+          },
+          $maxDistance: 10000, // 10 kilometers in meters
+        },
+      },
       _id: { $ne: verified.id }, // Exclude the current user's ID
     })
       .populate("_id")
@@ -65,8 +84,9 @@ statusRouter.get("/api/nearbyusers", async (req, res) => {
 
     if (nearbyUsers.length > 0) {
       const nearbyUserData = nearbyUsers.map((user) => ({
-        // location: { latitude: user.latitude, longitude: user.longitude },
-        userData: user._id,
+        _id: user._id._id,
+        name: user._id.name,
+        profileImage: user._id.profileImage,
       }));
       res.json({ success: true, nearbyUsers: nearbyUserData });
     } else {

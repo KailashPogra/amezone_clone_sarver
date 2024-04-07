@@ -11,19 +11,25 @@ const statusSchema = mongoose.Schema({
     type: Boolean,
     required: true,
   },
-  latitude: {
-    type: Number, // Define latitude as a Number type
-    required: true,
-  },
-  longitude: {
-    type: Number, // Define longitude as a Number type
-    required: true,
+  location: {
+    type: {
+      type: String,
+      enum: ["Point"], // Only allow "Point" type for location
+      required: true,
+    },
+    coordinates: {
+      type: [Number], // Array of numbers: [longitude, latitude]
+      required: true,
+    },
   },
   updatedAt: {
     type: Date,
     default: Date.now,
   },
 });
+
+// Index the location field as a 2dsphere index
+statusSchema.index({ location: "2dsphere" });
 
 const Status = mongoose.model("Status", statusSchema);
 module.exports = Status;
