@@ -8,7 +8,7 @@ const statusRouter = express.Router();
 // POST API endpoint to update user's online status and location
 statusRouter.post("/api/status", async (req, res) => {
   try {
-    const { isOnline } = req.body;
+    const { isOnline, latitude, longitude } = req.body;
     const token = req.header("x-auth-token");
 
     if (!token) {
@@ -24,16 +24,21 @@ statusRouter.post("/api/status", async (req, res) => {
     }
 
     // Create a GeoJSON object for the location
+    const location = {
+      type: "Point",
+      coordinates: [parseFloat(longitude), parseFloat(latitude)],
+    };
 
     // Update the user's online status and location
     const statusUpdate = await Status.findOneAndUpdate(
       { _id: verified.id },
-      { isOnline: isOnline },
+      { isOnline: isOnline, location: location },
       { new: true, upsert: true }
     );
 
     res.json({ success: true, status: statusUpdate });
   } catch (error) {
+    console.log(error.message);
     res.status(500).json({ error: error.message });
   }
 });
