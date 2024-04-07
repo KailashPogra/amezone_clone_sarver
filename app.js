@@ -17,7 +17,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 //process.env.PORT ||
 const PORT = process.env.PORT || 3000;
-const PORT1 = process.env.PORT || 5000;
+const PORT1 = process.env.PORT1 || 5000;
 io.on("connection", (socket) => {
   console.log("User connected");
 
