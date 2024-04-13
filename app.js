@@ -5,6 +5,9 @@ const app = express();
 const authRouter = require("./routes/auth");
 const updateRouter = require("./routes/update_user");
 const statusRouter = require("./routes/status");
+const chatUser = require("./routes/chat_user");
+const retriveChat = require("./routes/retrive_chat");
+const saveChat = require("./routes/save_chat");
 const http = require("http");
 const path = require("path");
 const { Server } = require("socket.io"); // Change to Server from socket.io
@@ -23,15 +26,15 @@ io.on("connection", (socket) => {
   console.log("User connected");
 
   socket.on("join", (data) => {
-    const { senderId, receiverId } = data;
-    const roomId = `${senderId}_${receiverId}`;
+    const { senderId, roomId } = data;
+
     socket.join(roomId);
     console.log(`User ${senderId} joined room ${roomId}`);
   });
 
   socket.on("message", (data) => {
-    const { senderId, receiverId, message } = data;
-    const roomId = `${senderId}_${receiverId}`;
+    const { senderId, message, roomId } = data;
+    // const roomId = `${senderId}_${receiverId}`;
     io.to(roomId).emit("message", { senderId, message });
   });
 
@@ -49,6 +52,10 @@ mongoose
     console.log(err);
   });
 app.use(express.json());
+
+app.use(chatUser);
+app.use(retriveChat);
+app.use(saveChat);
 app.use(authRouter);
 app.use(updateRouter);
 app.use(statusRouter);

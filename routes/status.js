@@ -93,7 +93,11 @@ statusRouter.get("/api/nearbyusers", async (req, res) => {
         name: user._id.name,
         profileImage: user._id.profileImage,
       }));
-      res.json({ success: true, nearbyUsers: nearbyUserData });
+      res.json({
+        success: true,
+        senderId: verified.id,
+        nearbyUsers: nearbyUserData,
+      });
     } else {
       res.status(404).json({ error: "No nearby users found" });
     }
