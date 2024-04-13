@@ -49,14 +49,14 @@ statusRouter.get("/api/nearbyusers", async (req, res) => {
     const { latitude, longitude } = req.query;
     const token = req.header("x-auth-token");
     if (!token) {
-      return res.status(401).json({ msg: "No auth token , access denied" });
+      return res.status(401).json({ msg: "No auth token, access denied" });
     }
     const verified = jwt.verify(token, "passwordKey");
 
     if (!verified) {
       return res
         .status(401)
-        .json({ msg: "token verification failed , access denied" });
+        .json({ msg: "Token verification failed, access denied" });
     }
 
     // Check if latitude and longitude are provided
@@ -79,15 +79,15 @@ statusRouter.get("/api/nearbyusers", async (req, res) => {
             type: "Point",
             coordinates: [lng, lat], // Longitude, Latitude
           },
-          $maxDistance: 10000, // 10 kilometers in meters
+          $maxDistance: 1000000000, // 10 kilometers in meters
         },
       },
       _id: { $ne: verified.id }, // Exclude the current user's ID
     })
       .populate("_id")
+      .sort({ "location.coordinates": 1 }) // Sort by distance in ascending order
       .limit(10);
     console.log(nearbyUsers);
-    // Filter out objects with a null _id
     const filteredUsers = nearbyUsers.filter((user) => user._id !== null);
 
     if (filteredUsers.length > 0) {
