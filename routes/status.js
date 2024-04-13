@@ -86,9 +86,12 @@ statusRouter.get("/api/nearbyusers", async (req, res) => {
     })
       .populate("_id")
       .limit(10);
+    console.log(nearbyUsers);
+    // Filter out objects with a null _id
+    const filteredUsers = nearbyUsers.filter((user) => user._id !== null);
 
-    if (nearbyUsers.length > 0) {
-      const nearbyUserData = nearbyUsers.map((user) => ({
+    if (filteredUsers.length > 0) {
+      const nearbyUserData = filteredUsers.map((user) => ({
         _id: user._id._id,
         name: user._id.name,
         profileImage: user._id.profileImage,
