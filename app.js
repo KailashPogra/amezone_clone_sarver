@@ -8,6 +8,7 @@ const statusRouter = require("./routes/status");
 const chatUser = require("./routes/chat_user");
 const retriveChat = require("./routes/retrive_chat");
 const saveChat = require("./routes/save_chat");
+const saveFcm = require("./routes/fcm");
 const http = require("http");
 const path = require("path");
 const { Server } = require("socket.io"); // Change to Server from socket.io
@@ -22,6 +23,9 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 const PORT = process.env.PORT || 3000;
 //const PORT1 = process.env.PORT1 || 5000;
 
+// Keep track of connected users and their sockets
+const connectedUsers = {};
+
 io.on("connection", (socket) => {
   console.log("User connected");
 
@@ -30,16 +34,32 @@ io.on("connection", (socket) => {
 
     socket.join(roomId);
     console.log(`User ${senderId} joined room ${roomId}`);
+    // Add user to connectedUsers object
+    connectedUsers[senderId] = socket.id;
   });
 
   socket.on("message", (data) => {
-    const { senderId, message, roomId } = data;
-    // const roomId = `${senderId}_${receiverId}`;
+    const { senderId, receiverId, message, roomId } = data;
     io.to(roomId).emit("message", { senderId, message });
+    console.log(`reciver ${receiverId}`);
+    // Check if receiver is not connected
+    if (!connectedUsers[receiverId]) {
+      // Emit notification to receiver
+      io.to(connectedUsers[receiverId]).emit("notification", {
+        message: "You have a new message",
+      });
+    }
   });
 
   socket.on("disconnect", () => {
     console.log("User disconnected");
+    // Remove user from connectedUsers object upon disconnection
+    for (const [key, value] of Object.entries(connectedUsers)) {
+      if (value === socket.id) {
+        delete connectedUsers[key];
+        break;
+      }
+    }
   });
 });
 
@@ -53,6 +73,7 @@ mongoose
   });
 app.use(express.json());
 
+app.use(saveFcm);
 app.use(chatUser);
 app.use(retriveChat);
 app.use(saveChat);
