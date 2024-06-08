@@ -19,7 +19,7 @@ const io = new Server(httpServer); // Pass httpServer instance to Server
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 //process.env.PORT ||
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 io.on("connection", (socket) => {
   console.log("User connected");
