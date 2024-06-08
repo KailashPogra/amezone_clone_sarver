@@ -14,9 +14,7 @@ router.post("/api/fcmToken", async (req, res) => {
     const verified = jwt.verify(token, "passwordKey");
 
     if (!verified) {
-      return res
-        .status(401)
-        .json({ msg: "Token verification failed, access denied" });
+      return res.status(401).json({ msg: "Unauthorized" });
     }
 
     const { fcmToken } = req.body;

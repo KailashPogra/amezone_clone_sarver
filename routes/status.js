@@ -54,9 +54,7 @@ statusRouter.get("/api/nearbyusers", async (req, res) => {
     const verified = jwt.verify(token, "passwordKey");
 
     if (!verified) {
-      return res
-        .status(401)
-        .json({ msg: "Token verification failed, access denied" });
+      return res.status(401).json({ msg: "Unauthorized" });
     }
 
     // Check if latitude and longitude are provided

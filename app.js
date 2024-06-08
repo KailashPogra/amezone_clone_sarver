@@ -18,13 +18,8 @@ const io = new Server(httpServer); // Pass httpServer instance to Server
 // Serve uploaded profile images statically
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-//mongodb://localhost:27017/
 //process.env.PORT ||
-const PORT = process.env.PORT || 3000;
-//const PORT1 = process.env.PORT1 || 5000;
-
-// Keep track of connected users and their sockets
-const connectedUsers = {};
+const PORT = 3000;
 
 io.on("connection", (socket) => {
   console.log("User connected");
@@ -34,32 +29,16 @@ io.on("connection", (socket) => {
 
     socket.join(roomId);
     console.log(`User ${senderId} joined room ${roomId}`);
-    // Add user to connectedUsers object
-    connectedUsers[senderId] = socket.id;
   });
 
   socket.on("message", (data) => {
     const { senderId, receiverId, message, roomId } = data;
     io.to(roomId).emit("message", { senderId, message });
     console.log(`reciver ${receiverId}`);
-    // Check if receiver is not connected
-    if (!connectedUsers[receiverId]) {
-      // Emit notification to receiver
-      io.to(connectedUsers[receiverId]).emit("notification", {
-        message: "You have a new message",
-      });
-    }
   });
 
   socket.on("disconnect", () => {
     console.log("User disconnected");
-    // Remove user from connectedUsers object upon disconnection
-    for (const [key, value] of Object.entries(connectedUsers)) {
-      if (value === socket.id) {
-        delete connectedUsers[key];
-        break;
-      }
-    }
   });
 });
 

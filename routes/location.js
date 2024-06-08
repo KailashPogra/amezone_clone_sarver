@@ -18,14 +18,16 @@ locationRouter.post("/nearest", auth, async (req, res) => {
         { latitude: { $gte: latitude - 1, $lte: latitude + 1 } },
         { longitude: { $gte: longitude - 1, $lte: longitude + 1 } },
       ],
-    }).sort({
-      $sqrt: {
-        $add: [
-          { $pow: [{ $subtract: ["$latitude", latitude] }, 2] },
-          { $pow: [{ $subtract: ["$longitude", longitude] }, 2] },
-        ],
-      },
-    });
+    })
+      .sort({
+        $sqrt: {
+          $add: [
+            { $pow: [{ $subtract: ["$latitude", latitude] }, 2] },
+            { $pow: [{ $subtract: ["$longitude", longitude] }, 2] },
+          ],
+        },
+      })
+      .limit(10);
 
     if (!nearestLocation) {
       return res.status(404).json({ msg: "No nearby location found" });
